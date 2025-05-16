@@ -4,3 +4,4 @@ server*
 client*
 *.o
 *.a
+.vscode

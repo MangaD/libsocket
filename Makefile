@@ -39,20 +39,25 @@ else ifeq ($(ARCH),x86)
 ARCHITECTURE = -m32
 endif
 
-CXXFLAGS = $(ARCHITECTURE) -std=c++11 $(DEFINES) $(WARNINGS) $(OPTIMIZE)
+CXXFLAGS = $(ARCHITECTURE) -std=c++17 $(DEFINES) $(WARNINGS) $(OPTIMIZE)
 
-.PHONY: all clean debug release release32 release64 debug32 debug64
+# GoogleTest integration (requires gtest installed or built separately)
+GTEST_FLAGS = -I$(GTEST_DIR)/include -L$(GTEST_DIR)/lib -lgtest -lgtest_main -lpthread
+GTEST_DIR ?= /usr/local
 
-all: libsocket.a
+.PHONY: all clean debug release release32 release64 debug32 debug64 test
 
-libsocket.a: socket.o
-	$(AR) $(ARFLAGS) $@ $?
-#$(AR) $(ARFLAGS) libsocket.a socket.o
-#ranlib libsocket.a
+all: src test
 
-socket.o: $(SRC_FOLDER)/socket.cpp $(SRC_FOLDER)/socket.hpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
-#$(CXX) -c socket.cpp -o socket.o $(CXXFLAGS)
+src:
+	$(MAKE) -C src
+
+test:
+	$(MAKE) -C test
+
+clean:
+	$(MAKE) -C src clean
+	$(MAKE) -C test clean
 
 debug:
 	$(MAKE) BUILD=debug
@@ -66,10 +71,3 @@ debug32:
 	$(MAKE) BUILD=debug ARCH=x86
 debug64:
 	$(MAKE) BUILD=debug ARCH=x64
-
-clean:
-ifeq ($(OS),Windows_NT)
-	$(CMD) "del *.o *.a" 2>nul
-else
-	rm -f *.o *.a
-endif
